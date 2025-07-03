@@ -1,0 +1,23 @@
+[project]
+name = "clinical-summary-generator"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Priyanshu Vadhwani",email = "priyanshu.vadhwani@coditas.in"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "uvicorn (>=0.35.0,<0.36.0)",
+    "fastapi (>=0.115.14,<0.116.0)",
+    "langgraph (>=0.5.1,<0.6.0)",
+    "groq (>=0.29.0,<0.30.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "langchain-groq (>=0.3.5,<0.4.0)",
+    "python-multipart (>=0.0.20,<0.0.21)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
