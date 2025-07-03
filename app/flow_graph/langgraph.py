@@ -111,12 +111,5 @@ def process_clinical_summary(input_json: Dict[str, Any]) -> Dict[str, Any]:
     final_state = flow.invoke(initial_state)
     print("[DEBUG] Final state after flow:", final_state)
     return {
-        "is_insurance_summary": final_state["is_insurance_summary"],
-        "is_valid": final_state["is_valid"],
-        "missing_fields": final_state["missing_fields"],
-        "suggestions": final_state["suggestions"],
-        "policy_approved": final_state["policy_approved"],
-        "failed_criteria": final_state["failed_criteria"],
-        "policy_message": final_state["policy_message"],
         "message": final_state["final_response"]
     }
