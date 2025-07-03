@@ -24,7 +24,7 @@ def validate_clinical_summary(data: dict) -> Dict[str, Any]:
             data=json.dumps(data, indent=2),
             missing_fields=missing_fields
         )
-        llm_suggestion = "".join(chunk for chunk in llm.stream(prompt))
+        llm_suggestion = llm.call(prompt)
         return {
             "is_valid": False,
             "missing_fields": missing_fields,

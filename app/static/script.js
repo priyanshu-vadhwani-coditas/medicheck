@@ -29,26 +29,15 @@ submitBtn.addEventListener('click', function() {
   if (!jsonData) return;
   resultDiv.innerHTML = '';
   spinner.style.display = 'block';
-  fetch('/api/validate-summary-stream', {
+  fetch('/api/validate-summary', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(jsonData)
   })
-  .then(response => {
-    const reader = response.body.getReader();
-    let result = '';
-    function read() {
-      return reader.read().then(({ done, value }) => {
-        if (done) {
-          spinner.style.display = 'none';
-          return;
-        }
-        result += new TextDecoder().decode(value);
-        resultDiv.innerHTML = marked.parse(result);
-        return read();
-      });
-    }
-    return read();
+  .then(response => response.json())
+  .then(data => {
+    spinner.style.display = 'none';
+    resultDiv.innerHTML = marked.parse(data.message);
   })
   .catch(err => {
     spinner.style.display = 'none';

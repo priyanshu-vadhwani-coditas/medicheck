@@ -18,7 +18,6 @@ def get_groq_api_key():
 class GroqLLM:
     """
     Utility class for interacting with the Groq LLM via LangChain.
-    Provides a streaming interface for LLM responses.
     """
     def __init__(self, model: str = "llama3-70b-8192", temperature: float = 0.5):
         """
@@ -33,10 +32,9 @@ class GroqLLM:
             temperature=self.temperature
         )
 
-    def stream(self, prompt: str):
+    def call(self, prompt: str) -> str:
         """
-        Stream the LLM's response token by token for the given prompt.
-        Yields each chunk of content as it arrives.
+        Get the LLM's response for the given prompt as a single string.
         """
-        for chunk in self.llm.stream([HumanMessage(content=prompt)]):
-            yield chunk.content
+        response = self.llm([HumanMessage(content=prompt)])
+        return response.content

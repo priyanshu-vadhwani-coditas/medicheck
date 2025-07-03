@@ -22,7 +22,6 @@ class AgentState(TypedDict):
     suggestions: List[str]
     policy_approved: bool
     failed_criteria: List[str]
-    policy_message: str
     final_response: str
 
 def guardrail_node(state: AgentState) -> AgentState:
@@ -54,8 +53,7 @@ def policy_node(state: AgentState) -> AgentState:
     result = evaluate_policy(state["input_json"])
     state["policy_approved"] = result["policy_approved"]
     state["failed_criteria"] = result["failed_criteria"]
-    state["policy_message"] = result["policy_message"]
-    state["final_response"] = state["policy_message"]
+    state["final_response"] = result["policy_message"]
     return state
 
 def guardrail_router(state: AgentState) -> str:
@@ -119,7 +117,6 @@ def process_clinical_summary(input_json: Dict[str, Any]) -> Dict[str, Any]:
         "suggestions": [],
         "policy_approved": False,
         "failed_criteria": [],
-        "policy_message": "",
         "final_response": "",
     }
     final_state = flow.invoke(initial_state)

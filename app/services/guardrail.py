@@ -13,8 +13,8 @@ def check_is_insurance_summary(json_data: dict) -> dict:
     base_parser = PydanticOutputParser(pydantic_object=GuardrailOutput)
     parser = OutputFixingParser.from_llm(parser=base_parser, llm=llm.llm)
     prompt = GUARDRAIL_PROMPT.format(json_data=json.dumps(json_data, indent=2)) + "\n" + parser.get_format_instructions()
-    # Collect the streamed output from the LLM
-    response = "".join(chunk for chunk in llm.stream(prompt))
+    # Get the output from the LLM synchronously
+    response = llm.call(prompt)
     try:
         result = parser.parse(response)
         return result.dict()

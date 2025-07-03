@@ -20,8 +20,8 @@ def evaluate_policy(data: Dict[str, Any], policy: Optional[str] = None) -> Dict[
         policy=policy,
         patient_json=json.dumps(data, indent=2)
     ) + "\n" + parser.get_format_instructions()
-    # Collect the streamed output from the LLM
-    response = "".join(chunk for chunk in llm.stream(prompt))
+    # Get the output from the LLM synchronously
+    response = llm.call(prompt)
     try:
         result = parser.parse(response)
         return result.dict()
