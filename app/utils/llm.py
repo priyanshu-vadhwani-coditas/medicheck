@@ -36,5 +36,5 @@ class GroqLLM:
         """
         Get the LLM's response for the given prompt as a single string.
         """
-        response = self.llm([HumanMessage(content=prompt)])
+        response = self.llm.invoke([HumanMessage(content=prompt)])
         return response.content

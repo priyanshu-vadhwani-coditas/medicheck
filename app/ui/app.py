@@ -1,0 +1,73 @@
+import streamlit as st
+import requests
+import json
+
+st.set_page_config(page_title="Insurance Summary Validator", page_icon="🩺")
+st.title("🩺 Insurance Summary Validator")
+
+st.write("""
+Upload a clinical summary JSON file to validate it for insurance approval.
+The app will show clear results for Guardrails, Validation, or Policy checks.
+""")
+
+uploaded_file = st.file_uploader("Choose a clinical summary JSON file", type=["json"])
+
+if uploaded_file is not None:
+    try:
+        json_data = json.load(uploaded_file)
+        st.subheader("Uploaded JSON:")
+        st.json(json_data, expanded=False)
+
+        if st.button("Validate Summary"):
+            with st.spinner("Validating..."):
+                response = requests.post(
+                    "http://localhost:8000/api/validate-summary",
+                    json=json_data
+                )
+
+                if response.status_code == 200:
+                    result = response.json()
+
+                    # ✅ CASE 1 — Rejected by Guardrails
+                    if not result.get("insurance_summary", False):
+                        st.error(f"❌ {result.get('message', 'Rejected by guardrails.')}")
+                    
+                    # ✅ CASE 2 — Rejected by Validation
+                    elif result.get("insurance_summary", False) and not result.get("valid_summary", False):
+                        st.error(f"❌ {result.get('message', 'Validation failed.')}")
+                        missing_fields = result.get("missing_fields", [])
+                        if missing_fields:
+                            st.write("**Missing Fields:**")
+                            for field in missing_fields:
+                                st.markdown(f"<span style='color:red'>• {field}</span>", unsafe_allow_html=True)
+                    
+                    # ✅ CASE 3 — Rejected by Policy
+                    elif (
+                        result.get("insurance_summary", False)
+                        and result.get("valid_summary", False)
+                        and not result.get("approved", False)
+                    ):
+                        st.error(f"❌ {result.get('message', 'Policy rejection.')}")
+                        rejection_reasons = result.get("rejection_reason", [])
+                        if rejection_reasons:
+                            st.write("**Rejection Reasons:**")
+                            for reason in rejection_reasons:
+                                st.markdown(f"<span style='color:red'>• {reason}</span>", unsafe_allow_html=True)
+                    
+                    # ✅ CASE 4 — Approved
+                    elif (
+                        result.get("insurance_summary", False)
+                        and result.get("valid_summary", False)
+                        and result.get("approved", False)
+                    ):
+                        st.success(f"✅ {result.get('message', 'Approved.')}")
+                    
+                    else:
+                        st.warning("⚠️ Unexpected response. Please check the backend or your input.")
+                    
+                else:
+                    st.error(f"Error: {response.status_code} - {response.text}")
+
+    except Exception as e:
+        st.error(f"Invalid JSON file: {e}")
+    

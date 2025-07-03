@@ -43,7 +43,10 @@ def validation_node(state: AgentState) -> AgentState:
     state["missing_fields"] = result["missing_fields"]
     state["suggestions"] = result["suggestions"]
     if not state["is_valid"]:
-        state["final_response"] = result["suggestions"][0] if result["suggestions"] else "Clinical summary is missing required fields."
+        if result["suggestions"]:
+            state["final_response"] = " ".join(result["suggestions"])
+        else:
+            state["final_response"] = "Clinical summary is missing required fields."
     return state
 
 def policy_node(state: AgentState) -> AgentState:
@@ -120,4 +123,12 @@ def process_clinical_summary(input_json: Dict[str, Any]) -> Dict[str, Any]:
         "final_response": "",
     }
     final_state = flow.invoke(initial_state)
-    return final_state
+    return {
+        "insurance_summary" : final_state["is_insurance_summary"] ,
+        "valid_summary" : final_state["is_valid"] ,
+        "missing_fields" : final_state["missing_fields"] ,
+        "suggestions" : final_state["suggestions"] ,
+        "approved" : final_state["policy_approved"] ,
+        "rejection_reason" : final_state["failed_criteria"] ,
+        "message" : final_state["final_response"]
+    }
