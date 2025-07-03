@@ -38,11 +38,7 @@ def validation_node(state: AgentState) -> AgentState:
     state["missing_fields"] = result["missing_fields"]
     state["suggestions"] = result["suggestions"]
     if not state["is_valid"]:
-        state["final_response"] = (
-            "Clinical summary is missing required fields: "
-            + ", ".join(state["missing_fields"]) + ". Suggestions: "
-            + "; ".join(state["suggestions"])
-        )
+        state["final_response"] = result["suggestions"][0] if result["suggestions"] else "Clinical summary is missing required fields."
     print("[DEBUG] Exiting validation_node with state:", state)
     return state
 
