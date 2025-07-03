@@ -22,6 +22,6 @@ class GroqLLM:
             temperature=self.temperature
         )
 
-    def invoke(self, prompt: str) -> str:
-        response = self.llm.invoke([HumanMessage(content=prompt)])
-        return response.content
+    def stream(self, prompt: str):
+        for chunk in self.llm.stream([HumanMessage(content=prompt)]):
+            yield chunk.content

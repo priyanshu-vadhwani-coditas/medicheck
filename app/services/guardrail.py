@@ -10,7 +10,8 @@ def check_is_insurance_summary(json_data: dict) -> dict:
     parser = OutputFixingParser.from_llm(parser=base_parser, llm=llm.llm)
     prompt = GUARDRAIL_PROMPT.format(json_data=json.dumps(json_data, indent=2)) + "\n" + parser.get_format_instructions()
     print("[DEBUG] Guardrail prompt:\n", prompt)
-    response = llm.invoke(prompt)
+    # Collect the streamed output
+    response = "".join(chunk for chunk in llm.stream(prompt))
     print("[DEBUG] Guardrail LLM raw response:\n", response)
     try:
         result = parser.parse(response)

@@ -64,6 +64,21 @@ button:disabled {
   box-shadow: 0 2px 12px rgba(25,195,125,0.10);
   border: 1px solid #2a2a40;
 }
+.result ul {
+  margin: 0 0 0 1.2em;
+  padding: 0;
+}
+.result li {
+  margin-bottom: 0.5em;
+}
+.result strong, .result b {
+  color: #19c37d;
+}
+.result h1, .result h2, .result h3, .result h4 {
+  color: #43a1ff;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
 pre {
   background: #23232a;
   border-radius: 8px;

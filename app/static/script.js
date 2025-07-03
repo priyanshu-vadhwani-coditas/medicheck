@@ -29,27 +29,26 @@ submitBtn.addEventListener('click', function() {
   if (!jsonData) return;
   resultDiv.innerHTML = '';
   spinner.style.display = 'block';
-  fetch('/api/validate-summary', {
+  fetch('/api/validate-summary-stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(jsonData)
   })
-  .then(async response => {
-    let data;
-    try {
-      data = await response.json();
-    } catch (e) {
-      throw new Error('Invalid response from server.');
+  .then(response => {
+    const reader = response.body.getReader();
+    let result = '';
+    function read() {
+      return reader.read().then(({ done, value }) => {
+        if (done) {
+          spinner.style.display = 'none';
+          return;
+        }
+        result += new TextDecoder().decode(value);
+        resultDiv.innerHTML = marked.parse(result);
+        return read();
+      });
     }
-    if (!response.ok) {
-      throw new Error(data.detail || 'Server error');
-    }
-    spinner.style.display = 'none';
-    if (data.message) {
-      resultDiv.innerHTML = data.message;
-    } else {
-      resultDiv.innerHTML = '<span class="error">No message found in server reply.</span>';
-    }
+    return read();
   })
   .catch(err => {
     spinner.style.display = 'none';
