@@ -106,7 +106,7 @@ def create_validation_flow() -> StateGraph:
 def process_clinical_summary(input_json: Dict[str, Any]) -> Dict[str, Any]:
     """
     Orchestrates the validation flow for a clinical summary JSON.
-    Returns a dictionary with the final user-facing message.
+    Returns the full final state with all details for frontend handling.
     """
     flow = create_validation_flow()
     initial_state: AgentState = {
@@ -120,6 +120,4 @@ def process_clinical_summary(input_json: Dict[str, Any]) -> Dict[str, Any]:
         "final_response": "",
     }
     final_state = flow.invoke(initial_state)
-    return {
-        "message": final_state["final_response"]
-    }
+    return final_state

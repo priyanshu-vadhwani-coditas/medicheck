@@ -8,4 +8,9 @@ class GuardrailOutput(BaseModel):
 class PolicyEvalOutput(BaseModel):
     policy_approved: bool
     failed_criteria: list[str]
-    policy_message: str 
+    policy_message: str
+
+class ValidatorOutput(BaseModel):
+    is_valid: bool
+    missing_fields: list[str]
+    suggestions: list[str] 

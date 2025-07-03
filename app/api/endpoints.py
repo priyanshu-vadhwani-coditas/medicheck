@@ -33,6 +33,6 @@ async def validate_summary(
         except Exception:
             raise HTTPException(status_code=400, detail="Request body must be valid JSON.")
 
-    # Run the flow and get the final_response (which may be markdown)
+    # Run the flow and get the full final state (all details)
     result = process_clinical_summary(data)
     return JSONResponse(result) 
