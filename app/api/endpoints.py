@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Request
 from fastapi.responses import JSONResponse
 from typing import Any
 import json
-from app.graph_flow.langgraph_flow import process_clinical_summary
+from app.flow_graph.langgraph import process_clinical_summary
 
 router = APIRouter()
 
