@@ -1,6 +1,7 @@
 const fileInput = document.getElementById('jsonFile');
 const submitBtn = document.getElementById('submitBtn');
 const resultDiv = document.getElementById('result');
+const spinner = document.getElementById('spinner');
 let jsonData = null;
 
 fileInput.addEventListener('change', function() {
@@ -26,7 +27,8 @@ fileInput.addEventListener('change', function() {
 
 submitBtn.addEventListener('click', function() {
   if (!jsonData) return;
-  resultDiv.innerHTML = 'Validating...';
+  resultDiv.innerHTML = '';
+  spinner.style.display = 'block';
   fetch('/api/validate-summary', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -42,6 +44,7 @@ submitBtn.addEventListener('click', function() {
     if (!response.ok) {
       throw new Error(data.detail || 'Server error');
     }
+    spinner.style.display = 'none';
     if (data.message) {
       resultDiv.innerHTML = data.message;
     } else {
@@ -49,6 +52,7 @@ submitBtn.addEventListener('click', function() {
     }
   })
   .catch(err => {
+    spinner.style.display = 'none';
     resultDiv.innerHTML = '<span class="error">Error: ' + err.message + '</span>';
   });
 });
