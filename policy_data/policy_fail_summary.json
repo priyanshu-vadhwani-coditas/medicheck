@@ -1,0 +1,57 @@
+{
+  "patient_demographics": {
+    "full_name": "Tom Brown",
+    "age": 45,
+    "gender": "Male",
+    "weight": 78.0,
+    "insurance_id": "INS-789012",
+    "alcohol_use": true,
+    "smoking": false,
+    "substance_addiction": false
+  },
+  "hpi": {
+    "chief_complaint": "Knee pain",
+    "duration": "3 months",
+    "onset": "Gradual",
+    "associated_symptoms": ["Swelling"],
+    "documentation_date": "2024-06-01",
+    "vitals": {
+      "blood_pressure": "125/80",
+      "heart_rate": 80,
+      "temperature": 36.6
+    }
+  },
+  "past_medical_history": {
+    "chronic_illnesses": ["Osteoarthritis"],
+    "surgical_history": [],
+    "allergies": [],
+    "medication_history": ["Paracetamol"]
+  },
+  "procedures_treatments": [
+    {
+      "date": "2024-06-01",
+      "procedure_name": "Knee arthroscopy",
+      "performing_physician": "Dr. Lee",
+      "justification": "Suspected meniscal tear",
+      "referral_note_attached": true
+    }
+  ],
+  "imaging_lab_results": [
+    {
+      "type": "X-Ray",
+      "date": "2024-06-01",
+      "findings": "Mild joint space narrowing"
+    }
+  ],
+  "diagnosis_discharge_summary": {
+    "final_diagnosis": "Meniscal tear",
+    "icd_10_code": "S83.2",
+    "treatment_summary": "Arthroscopy performed",
+    "discharge_plan": "Physiotherapy"
+  },
+  "physician_signature": {
+    "attending_physician": "Dr. Lee",
+    "date_of_report": "2024-06-02",
+    "digital_signature": "LEE2024SIG"
+  }
+} 

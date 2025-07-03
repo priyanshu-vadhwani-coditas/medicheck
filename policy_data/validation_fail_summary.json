@@ -1,0 +1,53 @@
+{
+  "patient_demographics": {
+    "full_name": "Jane Smith",
+    "age": 60,
+    "gender": "Female",
+    "weight": 70.0,
+    "insurance_id": "INS-654321",
+    "alcohol_use": false,
+    "smoking": false,
+    "substance_addiction": false
+  },
+  "hpi": {
+    "chief_complaint": "Headache",
+    "duration": "1 week",
+    "onset": "Gradual",
+    "associated_symptoms": ["Nausea"],
+    "documentation_date": "2024-06-01",
+    "vitals": {
+      "blood_pressure": "120/80",
+      "heart_rate": 75,
+      "temperature": 36.7
+    }
+  },
+  "past_medical_history": {
+    "chronic_illnesses": ["Migraine"],
+    "surgical_history": [],
+    "allergies": [],
+    "medication_history": ["Ibuprofen"]
+  },
+  "procedures_treatments": [
+    {
+      "date": "2024-06-01",
+      "procedure_name": "MRI Brain",
+      "performing_physician": "Dr. Allen",
+      "justification": "Evaluate persistent headache"
+    }
+  ],
+  "imaging_lab_results": [
+    {
+      "type": "MRI",
+      "date": "2024-06-01",
+      "findings": "Normal"
+    }
+  ],
+  "diagnosis_discharge_summary": {
+    "final_diagnosis": "Migraine"
+  },
+  "physician_signature": {
+    "attending_physician": "Dr. Allen",
+    "date_of_report": "2024-06-02",
+    "digital_signature": "ALLEN2024SIG"
+  }
+} 

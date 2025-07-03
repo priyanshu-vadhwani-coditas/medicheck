@@ -1,0 +1,62 @@
+{
+  "patient_demographics": {
+    "full_name": "Alice Green",
+    "age": 65,
+    "gender": "Female",
+    "weight": 68.0,
+    "insurance_id": "INS-345678",
+    "alcohol_use": false,
+    "smoking": false,
+    "substance_addiction": false
+  },
+  "hpi": {
+    "chief_complaint": "Shortness of breath",
+    "duration": "1 week",
+    "onset": "Sudden",
+    "associated_symptoms": ["Cough", "Fever"],
+    "documentation_date": "2024-06-01",
+    "vitals": {
+      "blood_pressure": "118/76",
+      "heart_rate": 78,
+      "temperature": 37.0
+    }
+  },
+  "past_medical_history": {
+    "chronic_illnesses": ["Hypertension"],
+    "surgical_history": ["Cholecystectomy"],
+    "allergies": ["None"],
+    "medication_history": ["Amlodipine"]
+  },
+  "procedures_treatments": [
+    {
+      "date": "2024-06-01",
+      "procedure_name": "Bronchoscopy",
+      "performing_physician": "Dr. Patel",
+      "justification": "Evaluate persistent cough",
+      "referral_note_attached": true
+    }
+  ],
+  "imaging_lab_results": [
+    {
+      "type": "CT Chest",
+      "date": "2024-06-01",
+      "findings": "Patchy infiltrates"
+    },
+    {
+      "type": "CBC",
+      "date": "2024-06-01",
+      "findings": "Elevated WBC"
+    }
+  ],
+  "diagnosis_discharge_summary": {
+    "final_diagnosis": "Pneumonia",
+    "icd_10_code": "J18.9",
+    "treatment_summary": "Antibiotics, supportive care",
+    "discharge_plan": "Follow-up in 2 weeks"
+  },
+  "physician_signature": {
+    "attending_physician": "Dr. Patel",
+    "date_of_report": "2024-06-02",
+    "digital_signature": "PATEL2024SIG"
+  }
+} 
