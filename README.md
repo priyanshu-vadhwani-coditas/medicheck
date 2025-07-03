@@ -1,4 +1,4 @@
-# MediCheck: AI Validator for Clinical Summaries
+# MediCheck: AI Insurance Validator for Clinical Summaries
 
 ## Overview
 MediCheck is an AI-powered FastAPI service that validates clinical summaries (in JSON format) for insurance approval, using LLMs, LangGraph, and Pydantic for robust, explainable validation.
