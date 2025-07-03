@@ -13,7 +13,7 @@ def main():
     """)
 
     # Get backend URL from environment or use default
-    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    backend_url = os.getenv("BACKEND_URL", "https://medicheck-fgpn.onrender.com")
     
     uploaded_file = st.file_uploader("Choose a clinical summary JSON file", type=["json"])
 
