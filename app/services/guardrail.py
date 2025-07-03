@@ -5,19 +5,21 @@ from app.models.output import GuardrailOutput
 from langchain.output_parsers import PydanticOutputParser, OutputFixingParser
 
 def check_is_insurance_summary(json_data: dict) -> dict:
+    """
+    Uses an LLM to determine if the provided JSON data represents a clinical summary intended for insurance approval.
+    Returns a dictionary with the result and a polite message if not valid.
+    """
     llm = GroqLLM(model="llama3-70b-8192", temperature=0.2)
     base_parser = PydanticOutputParser(pydantic_object=GuardrailOutput)
     parser = OutputFixingParser.from_llm(parser=base_parser, llm=llm.llm)
     prompt = GUARDRAIL_PROMPT.format(json_data=json.dumps(json_data, indent=2)) + "\n" + parser.get_format_instructions()
-    print("[DEBUG] Guardrail prompt:\n", prompt)
-    # Collect the streamed output
+    # Collect the streamed output from the LLM
     response = "".join(chunk for chunk in llm.stream(prompt))
-    print("[DEBUG] Guardrail LLM raw response:\n", response)
     try:
         result = parser.parse(response)
         return result.dict()
-    except Exception as e:
-        print("[ERROR] Failed to parse guardrail LLM response:", e)
+    except Exception:
+        # If parsing fails, return a default polite message
         return {
             "is_insurance_summary": False,
             "reason": "LLM response could not be parsed as JSON.",

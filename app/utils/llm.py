@@ -6,13 +6,24 @@ from langchain_core.messages import HumanMessage
 load_dotenv()
 
 def get_groq_api_key():
+    """
+    Retrieve the GROQ API key from environment variables.
+    Raises an error if not set.
+    """
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise ValueError("GROQ_API_KEY environment variable is not set")
     return api_key
 
 class GroqLLM:
+    """
+    Utility class for interacting with the Groq LLM via LangChain.
+    Provides a streaming interface for LLM responses.
+    """
     def __init__(self, model: str = "llama3-70b-8192", temperature: float = 0.5):
+        """
+        Initialize the LLM client with the specified model and temperature.
+        """
         self.model = model
         self.temperature = temperature
         self.api_key = get_groq_api_key()
@@ -23,5 +34,9 @@ class GroqLLM:
         )
 
     def stream(self, prompt: str):
+        """
+        Stream the LLM's response token by token for the given prompt.
+        Yields each chunk of content as it arrives.
+        """
         for chunk in self.llm.stream([HumanMessage(content=prompt)]):
             yield chunk.content

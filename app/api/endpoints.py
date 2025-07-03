@@ -7,7 +7,7 @@ from app.flow_graph.langgraph import process_clinical_summary
 router = APIRouter()
 
 @router.post(
-    "/validate-summary-stream",
+    "/validate-summary",
     summary="Validate a clinical summary JSON file or object (streaming)",
     response_description="Validation result streamed as a user-friendly message."
 )
@@ -22,7 +22,7 @@ async def validate_summary_stream(
     if file:
         if not file.content_type or not file.content_type.endswith("json"):
             raise HTTPException(status_code=400, detail="Uploaded file must be a JSON file.")
-        try:
+        try:    
             contents = await file.read()
             data = json.loads(contents)
         except Exception:

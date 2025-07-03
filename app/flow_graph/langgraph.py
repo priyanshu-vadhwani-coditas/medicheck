@@ -12,6 +12,9 @@ load_dotenv()
 
 
 class AgentState(TypedDict):
+    """
+    Represents the state passed between nodes in the validation flow.
+    """
     input_json: Dict[str, Any]
     is_insurance_summary: bool
     is_valid: bool
@@ -23,48 +26,60 @@ class AgentState(TypedDict):
     final_response: str
 
 def guardrail_node(state: AgentState) -> AgentState:
-    print("[DEBUG] Entering guardrail_node with state:", state)
+    """
+    Node: Checks if the input JSON is a valid insurance summary using the LLM guardrail.
+    """
     result = check_is_insurance_summary(state["input_json"])
     state["is_insurance_summary"] = result.get("is_insurance_summary", False)
     if state["is_insurance_summary"] == False:
         state["final_response"] = result.get("polite_message")
-    print("[DEBUG] Exiting guardrail_node with state:", state)
     return state
 
 def validation_node(state: AgentState) -> AgentState:
-    print("[DEBUG] Entering validation_node with state:", state)
+    """
+    Node: Validates the clinical summary fields and provides LLM-generated suggestions if invalid.
+    """
     result = validate_clinical_summary(state["input_json"])
     state["is_valid"] = result["is_valid"]
     state["missing_fields"] = result["missing_fields"]
     state["suggestions"] = result["suggestions"]
     if not state["is_valid"]:
         state["final_response"] = result["suggestions"][0] if result["suggestions"] else "Clinical summary is missing required fields."
-    print("[DEBUG] Exiting validation_node with state:", state)
     return state
 
 def policy_node(state: AgentState) -> AgentState:
-    print("[DEBUG] Entering policy_node with state:", state)
+    """
+    Node: Evaluates the clinical summary against the insurance policy using the LLM.
+    """
     result = evaluate_policy(state["input_json"])
     state["policy_approved"] = result["policy_approved"]
     state["failed_criteria"] = result["failed_criteria"]
     state["policy_message"] = result["policy_message"]
     state["final_response"] = state["policy_message"]
-    print("[DEBUG] Exiting policy_node with state:", state)
     return state
 
 def guardrail_router(state: AgentState) -> str:
+    """
+    Router: Decides whether to proceed to validation or end if not an insurance summary.
+    """
     if state["is_insurance_summary"] == False:
         return END
     else:
         return "validation"
 
 def validation_router(state: AgentState) -> str:
+    """
+    Router: Decides whether to proceed to policy evaluation or end if validation fails.
+    """
     if state["is_valid"] == True:
         return "policy"
     else:
         return END
 
 def create_validation_flow() -> StateGraph:
+    """
+    Constructs the validation flow graph with guardrail, validation, and policy nodes.
+    """
     workflow = StateGraph(AgentState)
     workflow.add_node("guardrail", guardrail_node)
     workflow.add_node("validation", validation_node)
@@ -91,7 +106,10 @@ def create_validation_flow() -> StateGraph:
     return workflow.compile()
 
 def process_clinical_summary(input_json: Dict[str, Any]) -> Dict[str, Any]:
-    print("[DEBUG] Starting process_clinical_summary with input_json:", input_json)
+    """
+    Orchestrates the validation flow for a clinical summary JSON.
+    Returns a dictionary with the final user-facing message.
+    """
     flow = create_validation_flow()
     initial_state: AgentState = {
         "input_json": input_json,
@@ -105,7 +123,6 @@ def process_clinical_summary(input_json: Dict[str, Any]) -> Dict[str, Any]:
         "final_response": "",
     }
     final_state = flow.invoke(initial_state)
-    print("[DEBUG] Final state after flow:", final_state)
     return {
         "message": final_state["final_response"]
     }
