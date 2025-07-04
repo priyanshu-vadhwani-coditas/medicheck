@@ -37,8 +37,6 @@ def main():
                         # CASE 1 — Not intended for insurance approval (Guardrail fail)
                         if not result.get("insurance_summary", False):
                             st.info(f"📝✏️ {message}")
-                            if st.button("Revise Note"):
-                                st.experimental_rerun()
                         # CASE 2 — Missing required information (Validation fail)
                         elif result.get("insurance_summary", False) and not result.get("valid_summary", False):
                             st.warning(f"⚠️🗂️ {message}", icon="⚠️")
@@ -49,8 +47,6 @@ def main():
                             and not result.get("approved", False)
                         ):
                             st.error(f"❌🔒 {message}")
-                            if st.button("Contact Support"):
-                                st.write("Support contact feature coming soon!")
                         # CASE 4 — Application approved (Success)
                         elif (
                             result.get("insurance_summary", False)
@@ -58,9 +54,6 @@ def main():
                             and result.get("approved", False)
                         ):
                             st.success(f"🎉✅ {message}")
-                            st.balloons()
-                            if st.button("View Policy Details"):
-                                st.write("Policy details feature coming soon!")
                         else:
                             st.warning("⚠️ Unexpected response. Please check the backend or your input.")
 
