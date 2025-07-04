@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import json
 import os
+from collections import defaultdict
 
 def main():
     st.set_page_config(page_title="Insurance Summary Validator", page_icon="🩺")
@@ -43,8 +44,23 @@ def main():
                             missing_fields = result.get("missing_fields", [])
                             if missing_fields:
                                 st.write("**Missing Fields:**")
-                                for field in missing_fields:
-                                    st.markdown(f"<span style='color:red'>• {field}</span>", unsafe_allow_html=True)
+                                def group_missing_fields(missing_fields):
+                                    grouped = defaultdict(list)
+                                    for field in missing_fields:
+                                        parts = field.split('.')
+                                        if len(parts) > 1:
+                                            grouped[parts[0]].append(".".join(parts[1:]))
+                                        else:
+                                            grouped[parts[0]].append(None)
+                                    return grouped
+                                grouped = group_missing_fields(missing_fields)
+                                for section, fields in grouped.items():
+                                    st.markdown(f"**{section}**")
+                                    for field in fields:
+                                        if field:
+                                            st.markdown(f"&nbsp;&nbsp;&nbsp;<span style='color:red'>• {field}</span>", unsafe_allow_html=True)
+                                        else:
+                                            st.markdown(f"&nbsp;&nbsp;&nbsp;<span style='color:red'>• (entire section missing)</span>", unsafe_allow_html=True)
                         
                         # ✅ CASE 3 — Rejected by Policy
                         elif (
