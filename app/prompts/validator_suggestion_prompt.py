@@ -8,7 +8,7 @@ Return your answer in the following JSON format:
   "suggestions": ["...", "..."]
 }}
 
-Write each suggestion as a direct instruction, without starting with 'Please'.
+Write each suggestion as a direct helpful instruction, use words and proper sentences with proper punctuations.
 
 Data:
 {data}
