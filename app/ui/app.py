@@ -5,8 +5,8 @@ import os
 from collections import defaultdict
 
 def main():
-    st.set_page_config(page_title="Insurance Summary Validator", page_icon="🩺")
-    st.title("🩺 Insurance Summary Validator")
+    st.set_page_config(page_title="MediCheck: AI Validator for Clinical Summaries", page_icon="🩺")
+    st.title("🩺 MediCheck: AI Validator for Clinical Summaries")
 
     st.write("""
     Upload a clinical summary JSON file to validate it for insurance approval.
