@@ -33,61 +33,36 @@ def main():
 
                     if response.status_code == 200:
                         result = response.json()
-
-                        # ✅ CASE 1 — Rejected by Guardrails
+                        message = result.get("message", "")
+                        # CASE 1 — Not intended for insurance approval (Guardrail fail)
                         if not result.get("insurance_summary", False):
-                            st.error(f"❌ {result.get('message', 'Rejected by guardrails.')}")
-                        
-                        # ✅ CASE 2 — Rejected by Validation
+                            st.info(f"📝✏️ {message}")
+                            if st.button("Revise Note"):
+                                st.experimental_rerun()
+                        # CASE 2 — Missing required information (Validation fail)
                         elif result.get("insurance_summary", False) and not result.get("valid_summary", False):
-                            st.error(f"❌ {result.get('message', 'Validation failed.')}")
-                            missing_fields = result.get("missing_fields", [])
-                            if missing_fields:
-                                st.write("**Missing Fields:**")
-                                def group_missing_fields(missing_fields):
-                                    grouped = defaultdict(list)
-                                    for field in missing_fields:
-                                        parts = field.split('.')
-                                        if len(parts) > 1:
-                                            grouped[parts[0]].append(".".join(parts[1:]))
-                                        else:
-                                            grouped[parts[0]].append(None)
-                                    return grouped
-                                grouped = group_missing_fields(missing_fields)
-                                for section, fields in grouped.items():
-                                    st.markdown(f"**{section}**")
-                                    for field in fields:
-                                        if field:
-                                            st.markdown(f"&nbsp;&nbsp;&nbsp;<span style='color:red'>• {field}</span>", unsafe_allow_html=True)
-                                        else:
-                                            st.markdown(f"&nbsp;&nbsp;&nbsp;<span style='color:red'>• (entire section missing)</span>", unsafe_allow_html=True)
-                        
-                        # ✅ CASE 3 — Rejected by Policy
+                            st.warning(f"⚠️🗂️ {message}", icon="⚠️")
+                        # CASE 3 — Application denied (Policy fail)
                         elif (
                             result.get("insurance_summary", False)
                             and result.get("valid_summary", False)
                             and not result.get("approved", False)
                         ):
-                            st.error(f"❌ {result.get('message', 'Policy rejection.')}")
-                            rejection_reasons = result.get("rejection_reason", [])
-                            if rejection_reasons:
-                                st.write("**Rejection Reasons:**")
-                                for reason in rejection_reasons:
-                                    st.markdown(f"<span style='color:red'>• {reason}</span>", unsafe_allow_html=True)
-                        
-                        # ✅ CASE 4 — Approved
+                            st.error(f"❌🔒 {message}")
+                            if st.button("Contact Support"):
+                                st.write("Support contact feature coming soon!")
+                        # CASE 4 — Application approved (Success)
                         elif (
                             result.get("insurance_summary", False)
                             and result.get("valid_summary", False)
                             and result.get("approved", False)
                         ):
-                            st.success(f"✅ {result.get('message', 'Approved.')}")
-                        
+                            st.success(f"🎉✅ {message}")
+                            st.balloons()
+                            if st.button("View Policy Details"):
+                                st.write("Policy details feature coming soon!")
                         else:
                             st.warning("⚠️ Unexpected response. Please check the backend or your input.")
-                        
-                    else:
-                        st.error(f"Error: {response.status_code} - {response.text}")
 
         except Exception as e:
             st.error(f"Invalid JSON file: {e}")
