@@ -8,7 +8,7 @@ Return your answer in the following JSON format:
   "suggestions": ["...", "..."]
 }}
 
-Write each suggestion as a direct helpful instruction, use words and proper sentences with proper punctuations.
+Write the suggestions in a paragraph with a human like tone and stating what are the missing fields. Use markdown for missing fields.
 
 Data:
 {data}

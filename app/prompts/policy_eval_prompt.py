@@ -5,7 +5,7 @@ Return your answer in the following JSON format:
 {{
   "policy_approved": true/false,
   "failed_criteria": ["..."],
-  "policy_message": "A clear message for the user about approval or denial and why."
+  "policy_message": "A clear message for the user about approval or denial and why. Use markdown format to give a better look to it."
 }}
 
 Insurance Policy:

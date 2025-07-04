@@ -5,7 +5,7 @@ Return your answer in the following JSON format:
 {{
   "is_insurance_summary": true/false,
   "reason": "Short explanation of your decision",
-  "polite_message": "A polite message to the user, e.g. if not for insurance, explain what is missing or why it is not valid."
+  "polite_message": "A polite message to the user, e.g. if not for insurance, explain what is missing or why it is not valid. Use markdown for the same to have better readability."
 }}
 
 Here is the uploaded JSON:

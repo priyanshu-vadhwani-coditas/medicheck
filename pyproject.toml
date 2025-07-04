@@ -2,9 +2,7 @@
 name = "clinical-summary-generator"
 version = "0.1.0"
 description = "AI-powered clinical summary validator for insurance approval"
-authors = [
-    {name = "Priyanshu Vadhwani",email = "priyanshu.vadhwani@coditas.in"}
-]
+authors = ["Priyanshu Vadhwani <priyanshu.vadhwani@coditas.in>"]
 readme = "README.md"
 packages = [{include = "app"}]
 
