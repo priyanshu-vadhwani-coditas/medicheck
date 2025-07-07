@@ -3,6 +3,8 @@ from fastapi.responses import JSONResponse
 from typing import Any, Optional
 import json
 from app.flow_graph.langgraph import process_clinical_summary
+import aiofiles
+import uuid
 
 router = APIRouter()
 
@@ -35,4 +37,31 @@ async def validate_summary(
 
     # Run the flow and get the full final state (all details)
     result = process_clinical_summary(data)
+    return JSONResponse(result)
+
+@router.post(
+    "/upload-pdf",
+    summary="Upload a PDF and extract clinical summary",
+    response_description="Extracted clinical summary and validation results."
+)
+async def upload_pdf(
+    file: UploadFile = File(..., description="A PDF file containing the clinical summary.")
+):
+    """
+    Accepts a PDF file, extracts the clinical summary using LLM, and returns the result.
+    """
+    if not file.content_type or not file.content_type.endswith("pdf"):
+        raise HTTPException(status_code=400, detail="Uploaded file must be a PDF.")
+    temp_filename = f"temp_{uuid.uuid4().hex}.pdf"
+    try:
+        async with aiofiles.open(temp_filename, 'wb') as out_file:
+            contents = await file.read()
+            await out_file.write(contents)
+        result = process_clinical_summary(pdf_path=temp_filename)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process PDF: {str(e)}")
+    finally:
+        import os
+        if os.path.exists(temp_filename):
+            os.remove(temp_filename)
     return JSONResponse(result) 
