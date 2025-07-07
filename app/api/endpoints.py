@@ -5,6 +5,7 @@ import json
 from app.flow_graph.langgraph import process_clinical_summary
 import aiofiles
 import uuid
+from app.services.summary import summary_generator
 
 router = APIRouter()
 
@@ -64,4 +65,21 @@ async def upload_pdf(
         import os
         if os.path.exists(temp_filename):
             os.remove(temp_filename)
-    return JSONResponse(result) 
+    return JSONResponse(result)
+
+@router.post(
+    "/summary",
+    summary="Generate a 250-word summary for a clinical summary JSON",
+    response_description="A concise summary for the patient."
+)
+async def generate_summary(request: Request):
+    """
+    Generate a summary for the given clinical summary JSON using the LLM.
+    Returns a 250-word summary as a string.
+    """
+    try:
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Request body must be valid JSON.")
+    summary = summary_generator(data)
+    return {"summary": summary} 
