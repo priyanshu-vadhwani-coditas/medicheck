@@ -1,4 +1,5 @@
 import os
+import asyncio
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
@@ -32,9 +33,9 @@ class GroqLLM:
             temperature=self.temperature
         )
 
-    def call(self, prompt: str) -> str:
+    async def acall(self, prompt: str) -> str:
         """
-        Get the LLM's response for the given prompt as a single string.
+        Async version of call method for concurrent processing.
         """
-        response = self.llm.invoke([HumanMessage(content=prompt)])
+        response = await self.llm.ainvoke([HumanMessage(content=prompt)])
         return response.content

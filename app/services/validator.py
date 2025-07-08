@@ -6,10 +6,11 @@ from app.models.output import ValidatorOutput
 from policy_data.example_json import SAMPLE
 import json
 
-def validate_clinical_summary(data: dict) -> Dict[str, Any]:
+async def validate_clinical_summary(data: dict) -> Dict[str, Any]:
     """
     Validates clinical summary using LLM-based validation instead of hardcoded Pydantic validation.
     This provides more intelligent and flexible validation that considers business logic.
+    Now async for better performance.
     """
     try:
         llm = GroqLLM(model="llama3-70b-8192", temperature=0.1)
@@ -22,10 +23,10 @@ def validate_clinical_summary(data: dict) -> Dict[str, Any]:
             example_json=json.dumps(SAMPLE, indent=2)
         ) + "\n" + parser.get_format_instructions()
         
-        llm_response = llm.call(prompt)
+        llm_response = await llm.acall(prompt)
         
-        result = parser.parse(llm_response)
-        return result.dict()
+            result = parser.parse(llm_response)
+            return result.dict()
         
     except Exception as e:
         missing_fields = []
@@ -77,8 +78,8 @@ def validate_clinical_summary(data: dict) -> Dict[str, Any]:
             suggestions.append("All required fields appear to be present.")
             is_valid = True
         
-        return {
+            return {
             "is_valid": is_valid,
-            "missing_fields": missing_fields,
+                "missing_fields": missing_fields,
             "suggestions": suggestions
-        } 
+            } 

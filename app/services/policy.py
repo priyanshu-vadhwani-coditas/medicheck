@@ -6,10 +6,11 @@ from policy_data.default_policy import INSURANCE_POLICY
 from app.models.output import PolicyEvalOutput
 from langchain.output_parsers import PydanticOutputParser, OutputFixingParser
 
-def evaluate_policy(data: Dict[str, Any], policy: Optional[str] = None) -> Dict[str, Any]:
+async def evaluate_policy(data: Dict[str, Any], policy: Optional[str] = None) -> Dict[str, Any]:
     """
     Uses an LLM to evaluate if the provided clinical summary data meets the insurance policy criteria.
     Returns a dictionary with the evaluation result and a user-friendly message.
+    Now async for better performance.
     """
     if policy is None:
         policy = INSURANCE_POLICY
@@ -21,7 +22,7 @@ def evaluate_policy(data: Dict[str, Any], policy: Optional[str] = None) -> Dict[
         patient_json=json.dumps(data, indent=2)
     ) + "\n" + parser.get_format_instructions()
 
-    response = llm.call(prompt)
+    response = await llm.acall(prompt)
     try:
         result = parser.parse(response)
         return result.dict()

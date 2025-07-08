@@ -36,7 +36,7 @@ async def validate_summary(
         except Exception:
             raise HTTPException(status_code=400, detail="Request body must be valid JSON.")
 
-    result = process_clinical_summary(data)
+    result = await process_clinical_summary(data)
     return JSONResponse(result)
 
 @router.post(
@@ -57,7 +57,7 @@ async def upload_pdf(
         async with aiofiles.open(temp_filename, 'wb') as out_file:
             contents = await file.read()
             await out_file.write(contents)
-        result = process_clinical_summary(pdf_path=temp_filename)
+        result = await process_clinical_summary(pdf_path=temp_filename)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to process PDF: {str(e)}")
     finally:
@@ -80,5 +80,5 @@ async def generate_summary(request: Request):
         data = await request.json()
     except Exception:
         raise HTTPException(status_code=400, detail="Request body must be valid JSON.")
-    summary = process_summary_generation(input_json=data)
+    summary = await process_summary_generation(input_json=data)
     return {"summary": summary} 

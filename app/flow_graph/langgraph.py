@@ -1,4 +1,6 @@
 import os
+import time
+import asyncio
 from typing import Dict, Any, TypedDict, List
 from typing_extensions import TypedDict
 import json
@@ -28,21 +30,39 @@ class AgentState(TypedDict):
     final_response: str
     summary: str
 
-def guardrail_node(state: AgentState) -> AgentState:
+async def guardrail_node(state: AgentState) -> AgentState:
     """
     Node: Checks if the input JSON or pdf is a valid insurance summary using the LLM guardrail.
+    Now async to handle async service calls.
     """
-    result = check_is_insurance_summary(state["input_json"])
+    start_time = time.time()
+    print(f"DEBUG: GUARDRAIL NODE START - {start_time}")
+    
+    result = await check_is_insurance_summary(state["input_json"])
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"DEBUG: GUARDRAIL NODE END - Duration: {duration:.2f} seconds")
+    
     state["is_insurance_summary"] = result.get("is_insurance_summary", False)
     if state["is_insurance_summary"] == False:
         state["final_response"] = result.get("polite_message")
     return state
 
-def validation_node(state: AgentState) -> AgentState:
+async def validation_node(state: AgentState) -> AgentState:
     """
     Node: Validates the clinical summary fields and provides LLM-generated suggestions if invalid.
+    Now async to handle async service calls.
     """
-    result = validate_clinical_summary(state["input_json"])
+    start_time = time.time()
+    print(f"DEBUG: VALIDATION NODE START - {start_time}")
+    
+    result = await validate_clinical_summary(state["input_json"])
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"DEBUG: VALIDATION NODE END - Duration: {duration:.2f} seconds")
+    
     state["is_valid"] = result["is_valid"]
     state["missing_fields"] = result["missing_fields"]
     state["suggestions"] = result["suggestions"]
@@ -62,26 +82,44 @@ def validation_node(state: AgentState) -> AgentState:
                 validation_message += f"• {suggestion}\n"
         
         state["final_response"] = validation_message
-    else:
+        else:
         state["final_response"] = "Clinical summary validation passed successfully."
     
     return state
 
-def policy_node(state: AgentState) -> AgentState:
+async def policy_node(state: AgentState) -> AgentState:
     """
     Node: Evaluates the clinical summary against the insurance policy using the LLM.
+    Now async to handle async service calls.
     """
-    result = evaluate_policy(state["input_json"])
+    start_time = time.time()
+    print(f"DEBUG: POLICY NODE START - {start_time}")
+    
+    result = await evaluate_policy(state["input_json"])
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"DEBUG: POLICY NODE END - Duration: {duration:.2f} seconds")
+    
     state["policy_approved"] = result["policy_approved"]
     state["failed_criteria"] = result["failed_criteria"]
     state["final_response"] = result["policy_message"]
     return state
 
-def pdf_extraction_node(state: AgentState) -> AgentState:
+async def pdf_extraction_node(state: AgentState) -> AgentState:
     """
     Node: Extracts clinical summary from PDF and handles extraction failures.
+    Now async to handle the async PDF extraction function.
     """
-    result = extract_clinical_summary_from_pdf(state["pdf_path"])
+    start_time = time.time()
+    print(f"DEBUG: PDF EXTRACTION NODE START - {start_time}")
+    
+    result = await extract_clinical_summary_from_pdf(state["pdf_path"])
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"DEBUG: PDF EXTRACTION NODE END - Duration: {duration:.2f} seconds")
+    
     if "polite_message" not in result:
         state["input_json"] = result
         state["final_response"] = "PDF extraction successful."
@@ -90,34 +128,46 @@ def pdf_extraction_node(state: AgentState) -> AgentState:
         state["is_insurance_summary"] = False 
     return state
 
-def summary_node(state: AgentState) -> AgentState:
+async def summary_node(state: AgentState) -> AgentState:
     """
     Node: Generates a summary when explicitly requested.
+    Now async to handle async service calls.
     """
-    state["summary"] = summary_generator(state["input_json"])
+    start_time = time.time()
+    print(f"DEBUG: SUMMARY NODE START - {start_time}")
+    
+    state["summary"] = await summary_generator(state["input_json"])
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"DEBUG: SUMMARY NODE END - Duration: {duration:.2f} seconds")
+    
     return state
 
-def input_router(state: AgentState) -> str:
+async def input_router(state: AgentState) -> str:
     """
     Router: Decides whether to process JSON or PDF input.
+    Now async for consistency with other async functions.
     """
     if state.get("pdf_path"):
         return "pdf_extraction"
     else:
         return "guardrail"
 
-def guardrail_router(state: AgentState) -> str:
+async def guardrail_router(state: AgentState) -> str:
     """
     Router: Decides whether to proceed to validation or end if not an insurance summary.
+    Now async for consistency with other async functions.
     """
     if state["is_insurance_summary"] == False:
         return END
     else:
         return "validation"
 
-def validation_router(state: AgentState) -> str:
+async def validation_router(state: AgentState) -> str:
     """
     Router: Decides whether to proceed to policy evaluation or end if validation fails.
+    Now async for consistency with other async functions.
     """
     
     if state["is_valid"] == True:
@@ -173,11 +223,15 @@ def create_summary_flow() -> StateGraph:
     workflow.add_edge("summary", END)
     return workflow.compile()
 
-def process_clinical_summary(input_json: Dict[str, Any] = None, pdf_path: str = None) -> Dict[str, Any]:
+async def process_clinical_summary(input_json: Dict[str, Any] = None, pdf_path: str = None) -> Dict[str, Any]:
     """
     Orchestrates the validation flow for a clinical summary JSON or PDF.
     Returns the full final state with all details for frontend handling.
+    Now async to handle async PDF extraction.
     """
+    total_start_time = time.time()
+    print(f"DEBUG: TOTAL FLOW START - {total_start_time}")
+    
     flow = create_validation_flow()
     initial_state: AgentState = {
         "input_json": input_json,
@@ -191,7 +245,12 @@ def process_clinical_summary(input_json: Dict[str, Any] = None, pdf_path: str = 
         "final_response": "",
         "summary": "",
     }
-    final_state = flow.invoke(initial_state)
+    final_state = await flow.ainvoke(initial_state)
+    
+    total_end_time = time.time()
+    total_duration = total_end_time - total_start_time
+    print(f"DEBUG: TOTAL FLOW END - Duration: {total_duration:.2f} seconds")
+    
     return {
         "input_json": final_state["input_json"],
         "insurance_summary" : final_state["is_insurance_summary"] ,
@@ -203,11 +262,15 @@ def process_clinical_summary(input_json: Dict[str, Any] = None, pdf_path: str = 
         "message" : final_state["final_response"],
     }
 
-def process_summary_generation(input_json: Dict[str, Any]) -> str:
+async def process_summary_generation(input_json: Dict[str, Any]) -> str:
     """
     Generates a summary for the given clinical summary JSON.
     Returns the summary as a string.
+    Now async to handle async summary generation.
     """
+    start_time = time.time()
+    print(f"DEBUG: SUMMARY GENERATION START - {start_time}")
+    
     flow = create_summary_flow()
     initial_state: AgentState = {
         "input_json": input_json,
@@ -221,5 +284,10 @@ def process_summary_generation(input_json: Dict[str, Any]) -> str:
         "final_response": "",
         "summary": "",
     }
-    final_state = flow.invoke(initial_state)
+    final_state = await flow.ainvoke(initial_state)
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"DEBUG: SUMMARY GENERATION END - Duration: {duration:.2f} seconds")
+    
     return final_state["summary"]
