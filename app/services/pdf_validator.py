@@ -25,20 +25,25 @@ def extract_clinical_summary_from_pdf(pdf_path: str):
     """
     try:
         pdf_text = extract_text_from_pdf(pdf_path)
-        print(pdf_text)
     except Exception as e:
         return {"polite_message": f"Failed to extract text from PDF: {str(e)}"}
 
     llm = GroqLLM(model="llama3-70b-8192", temperature=0.2)
-    base_parser = PydanticOutputParser(pydantic_object=ClinicalSummary)
-    parser = OutputFixingParser.from_llm(parser=base_parser, llm=llm.llm)
     prompt = PDF_EXTRACTION_PROMPT.format(
         pdf_text=pdf_text,
         example_json=json.dumps(SAMPLE, indent=2)
-    ) + "\n" + parser.get_format_instructions()
+    )
     response = llm.call(prompt)
+    
+    if "polite_message" in response.lower() or "routine medical note" in response.lower() or "not intended for insurance" in response.lower():
+        return {"polite_message": "This document appears to be a routine medical note/checkup and is not intended for insurance approval. Please upload a clinical summary document that includes detailed medical information for insurance purposes."}
+    
     try:
+        base_parser = PydanticOutputParser(pydantic_object=ClinicalSummary)
+        parser = OutputFixingParser.from_llm(parser=base_parser, llm=llm.llm)
+        full_prompt = prompt + "\n" + parser.get_format_instructions()
+        response = llm.call(full_prompt)
         result = parser.parse(response)
         return result.dict()
-    except Exception:
+    except Exception as e:
         return {"polite_message": "Sorry, we could not extract a valid clinical summary from your PDF. Please check your file and try again."}

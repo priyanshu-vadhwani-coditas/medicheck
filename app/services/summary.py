@@ -1,5 +1,5 @@
 import json
-from utils.llm import GroqLLM
+from app.utils.llm import GroqLLM
 from app.prompts.summary_prompt import SUMMARY_GENERATOR_PROMPT
 
 def summary_generator(json_data: dict) -> str:
