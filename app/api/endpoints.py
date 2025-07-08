@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Request
 from fastapi.responses import JSONResponse
 from typing import Any, Optional
 import json
-from app.flow_graph.langgraph import process_clinical_summary
+from app.flow_graph.langgraph import process_clinical_summary, process_summary_generation
 import aiofiles
 import uuid
 from app.services.summary import summary_generator
@@ -36,7 +36,6 @@ async def validate_summary(
         except Exception:
             raise HTTPException(status_code=400, detail="Request body must be valid JSON.")
 
-    # Run the flow and get the full final state (all details)
     result = process_clinical_summary(data)
     return JSONResponse(result)
 
@@ -65,7 +64,7 @@ async def upload_pdf(
         import os
         if os.path.exists(temp_filename):
             os.remove(temp_filename)
-    return JSONResponse(result)
+    return JSONResponse(result) 
 
 @router.post(
     "/summary",
@@ -74,12 +73,12 @@ async def upload_pdf(
 )
 async def generate_summary(request: Request):
     """
-    Generate a summary for the given clinical summary JSON using the LLM.
+    Generate a summary for the given clinical summary JSON using the LLM via the flow graph.
     Returns a 250-word summary as a string.
     """
     try:
         data = await request.json()
     except Exception:
         raise HTTPException(status_code=400, detail="Request body must be valid JSON.")
-    summary = summary_generator(data)
+    summary = process_summary_generation(input_json=data)
     return {"summary": summary} 

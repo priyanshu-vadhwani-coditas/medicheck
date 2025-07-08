@@ -8,6 +8,7 @@ from app.services.guardrail import check_is_insurance_summary
 from app.services.validator import validate_clinical_summary
 from app.services.policy import evaluate_policy
 from app.services.pdf_validator import extract_clinical_summary_from_pdf
+from app.services.summary import summary_generator
 
 load_dotenv()
 
@@ -25,12 +26,12 @@ class AgentState(TypedDict):
     policy_approved: bool
     failed_criteria: List[str]
     final_response: str
+    summary: str
 
 def guardrail_node(state: AgentState) -> AgentState:
     """
     Node: Checks if the input JSON or pdf is a valid insurance summary using the LLM guardrail.
     """
-    print("Enteringg guardrail_node")
     result = check_is_insurance_summary(state["input_json"])
     state["is_insurance_summary"] = result.get("is_insurance_summary", False)
     if state["is_insurance_summary"] == False:
@@ -41,23 +42,35 @@ def validation_node(state: AgentState) -> AgentState:
     """
     Node: Validates the clinical summary fields and provides LLM-generated suggestions if invalid.
     """
-    print("Enteringg validation_node")
     result = validate_clinical_summary(state["input_json"])
     state["is_valid"] = result["is_valid"]
     state["missing_fields"] = result["missing_fields"]
     state["suggestions"] = result["suggestions"]
+    
     if not state["is_valid"]:
-        if result["suggestions"]:
-            state["final_response"] = " ".join(result["suggestions"])
-        else:
-            state["final_response"] = "Clinical summary is missing required fields."
+        validation_message = "Clinical summary validation failed:\n\n"
+        
+        if result.get("missing_fields"):
+            validation_message += "**Missing Required Fields:**\n"
+            for field in result["missing_fields"]:
+                validation_message += f"• {field}\n"
+            validation_message += "\n"
+        
+        if result.get("suggestions"):
+            validation_message += "**Suggestions:**\n"
+            for suggestion in result["suggestions"]:
+                validation_message += f"• {suggestion}\n"
+        
+        state["final_response"] = validation_message
+    else:
+        state["final_response"] = "Clinical summary validation passed successfully."
+    
     return state
 
 def policy_node(state: AgentState) -> AgentState:
     """
     Node: Evaluates the clinical summary against the insurance policy using the LLM.
     """
-    print("Enteringg policy_node")
     result = evaluate_policy(state["input_json"])
     state["policy_approved"] = result["policy_approved"]
     state["failed_criteria"] = result["failed_criteria"]
@@ -66,21 +79,28 @@ def policy_node(state: AgentState) -> AgentState:
 
 def pdf_extraction_node(state: AgentState) -> AgentState:
     """
+    Node: Extracts clinical summary from PDF and handles extraction failures.
     """
-    print("Enteringg pdf_extraction_node")
     result = extract_clinical_summary_from_pdf(state["pdf_path"])
     if "polite_message" not in result:
         state["input_json"] = result
         state["final_response"] = "PDF extraction successful."
     else:
         state["final_response"] = result.get("polite_message", "Unknown PDF extraction error.")
+        state["is_insurance_summary"] = False 
+    return state
+
+def summary_node(state: AgentState) -> AgentState:
+    """
+    Node: Generates a summary when explicitly requested.
+    """
+    state["summary"] = summary_generator(state["input_json"])
     return state
 
 def input_router(state: AgentState) -> str:
     """
     Router: Decides whether to process JSON or PDF input.
     """
-    print("Enteringg input_router")
     if state.get("pdf_path"):
         return "pdf_extraction"
     else:
@@ -90,7 +110,6 @@ def guardrail_router(state: AgentState) -> str:
     """
     Router: Decides whether to proceed to validation or end if not an insurance summary.
     """
-    print("Enteringg guardrail_router")
     if state["is_insurance_summary"] == False:
         return END
     else:
@@ -100,7 +119,7 @@ def validation_router(state: AgentState) -> str:
     """
     Router: Decides whether to proceed to policy evaluation or end if validation fails.
     """
-    print("Enteringg validation_router")
+    
     if state["is_valid"] == True:
         return "policy"
     else:
@@ -144,6 +163,16 @@ def create_validation_flow() -> StateGraph:
     workflow.add_edge("policy", END)
     return workflow.compile()
 
+def create_summary_flow() -> StateGraph:
+    """
+    Constructs a flow graph specifically for summary generation.
+    """
+    workflow = StateGraph(AgentState)
+    workflow.add_node("summary", summary_node)
+    workflow.add_edge(START, "summary")
+    workflow.add_edge("summary", END)
+    return workflow.compile()
+
 def process_clinical_summary(input_json: Dict[str, Any] = None, pdf_path: str = None) -> Dict[str, Any]:
     """
     Orchestrates the validation flow for a clinical summary JSON or PDF.
@@ -160,9 +189,11 @@ def process_clinical_summary(input_json: Dict[str, Any] = None, pdf_path: str = 
         "policy_approved": False,
         "failed_criteria": [],
         "final_response": "",
+        "summary": "",
     }
     final_state = flow.invoke(initial_state)
     return {
+        "input_json": final_state["input_json"],
         "insurance_summary" : final_state["is_insurance_summary"] ,
         "valid_summary" : final_state["is_valid"] ,
         "missing_fields" : final_state["missing_fields"] ,
@@ -171,3 +202,24 @@ def process_clinical_summary(input_json: Dict[str, Any] = None, pdf_path: str = 
         "rejection_reason" : final_state["failed_criteria"] ,
         "message" : final_state["final_response"],
     }
+
+def process_summary_generation(input_json: Dict[str, Any]) -> str:
+    """
+    Generates a summary for the given clinical summary JSON.
+    Returns the summary as a string.
+    """
+    flow = create_summary_flow()
+    initial_state: AgentState = {
+        "input_json": input_json,
+        "pdf_path": "",
+        "is_insurance_summary": False,
+        "is_valid": False,
+        "missing_fields": [],
+        "suggestions": [],
+        "policy_approved": False,
+        "failed_criteria": [],
+        "final_response": "",
+        "summary": "",
+    }
+    final_state = flow.invoke(initial_state)
+    return final_state["summary"]

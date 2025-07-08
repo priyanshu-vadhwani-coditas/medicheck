@@ -21,7 +21,7 @@ class HPI(BaseModel):
     duration: str
     onset: str
     associated_symptoms: List[str]
-    documentation_date: Optional[str] = None
+    documentation_date: str  # Required, not optional
     vitals: Optional[Vitals] = None
 
 class PastMedicalHistory(BaseModel):
@@ -45,7 +45,7 @@ class ImagingLabResult(BaseModel):
 
 class DiagnosisDischargeSummary(BaseModel):
     final_diagnosis: str
-    icd_10_code: str    
+    icd_10_code: str = Field(..., min_length=1)  # Required non-empty string
     treatment_summary: str
     discharge_plan: str
 
@@ -58,7 +58,7 @@ class ClinicalSummary(BaseModel):
     patient_demographics: PatientDemographics
     hpi: HPI
     past_medical_history: PastMedicalHistory
-    procedures_treatments: List[ProcedureOrTreatment]
+    procedures_treatments: List[ProcedureOrTreatment] = Field(..., min_items=1)  # Require at least one
     imaging_lab_results: List[ImagingLabResult]
     diagnosis_discharge_summary: DiagnosisDischargeSummary
     physician_signature: PhysicianSignature 

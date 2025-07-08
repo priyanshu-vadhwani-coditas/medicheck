@@ -20,13 +20,12 @@ def evaluate_policy(data: Dict[str, Any], policy: Optional[str] = None) -> Dict[
         policy=policy,
         patient_json=json.dumps(data, indent=2)
     ) + "\n" + parser.get_format_instructions()
-    # Get the output from the LLM synchronously
+
     response = llm.call(prompt)
     try:
         result = parser.parse(response)
         return result.dict()
     except Exception:
-        # If parsing fails, return a default message
         return {
             "policy_approved": False,
             "failed_criteria": ["LLM response could not be parsed as JSON."],
