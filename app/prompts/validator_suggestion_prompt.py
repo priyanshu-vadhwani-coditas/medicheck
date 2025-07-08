@@ -12,7 +12,6 @@ CRITICAL VALIDATION CRITERIA:
    - Physician signature: attending_physician, date_of_report, digital_signature
 
 2. **QUALITY CHECKS**:
-   - All dates should be in valid format (YYYY-MM-DD)
    - Age should be reasonable (0-120)
    - ICD-10 codes should be in valid format
    - Procedures should have clear medical justification
@@ -48,8 +47,7 @@ Return your answer in the following JSON format:
 {{
   "is_valid": true/false,
   "missing_fields": ["list of missing or inadequate fields"],
-  "suggestions": ["detailed explanation of what's missing and how to fix it"]
+  "suggestions": Write the suggestions in a paragraph with a human like tone and stating what are the missing fields. Use markdown for missing fields.
 }}
 
-Write the suggestions in a paragraph with a human like tone and stating what are the missing fields. Use markdown for missing fields.
 """ 

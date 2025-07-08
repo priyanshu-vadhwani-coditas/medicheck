@@ -13,7 +13,7 @@ async def validate_clinical_summary(data: dict) -> Dict[str, Any]:
     Now async for better performance.
     """
     try:
-        llm = GroqLLM(model="llama3-70b-8192", temperature=0.1)
+        llm = GroqLLM(model="llama-3.3-70b-versatile", temperature=0.4)
         
         base_parser = PydanticOutputParser(pydantic_object=ValidatorOutput)
         parser = OutputFixingParser.from_llm(parser=base_parser, llm=llm.llm)
@@ -23,12 +23,15 @@ async def validate_clinical_summary(data: dict) -> Dict[str, Any]:
             example_json=json.dumps(SAMPLE, indent=2)
         ) + "\n" + parser.get_format_instructions()
         
+        print(f"[DEBUG] VALIDATOR LLM PROMPT: {prompt[:1000]}...")
         llm_response = await llm.acall(prompt)
-        
-            result = parser.parse(llm_response)
-            return result.dict()
+        print(f"[DEBUG] VALIDATOR LLM RAW RESPONSE: {llm_response}")
+        result = parser.parse(llm_response)
+        print(f"[DEBUG] VALIDATOR PARSED RESULT: {result}")
+        return result.dict()
         
     except Exception as e:
+        print(f"[DEBUG] VALIDATOR PARSING ERROR: {e}")
         missing_fields = []
         suggestions = []
         
@@ -78,8 +81,9 @@ async def validate_clinical_summary(data: dict) -> Dict[str, Any]:
             suggestions.append("All required fields appear to be present.")
             is_valid = True
         
-            return {
+        print(f"[DEBUG] VALIDATOR FALLBACK RESULT: is_valid={is_valid}, missing_fields={missing_fields}, suggestions={suggestions}")
+        return {
             "is_valid": is_valid,
-                "missing_fields": missing_fields,
+            "missing_fields": missing_fields,
             "suggestions": suggestions
-            } 
+        } 

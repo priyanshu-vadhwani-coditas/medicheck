@@ -20,7 +20,7 @@ class GroqLLM:
     """
     Utility class for interacting with the Groq LLM via LangChain.
     """
-    def __init__(self, model: str = "llama3-70b-8192", temperature: float = 0.5):
+    def __init__(self, model: str = "llama-3.3-70b-versatile", temperature: float = 0.5):
         """
         Initialize the LLM client with the specified model and temperature.
         """

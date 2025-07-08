@@ -315,24 +315,7 @@ def main():
         
         elif result.get("insurance_summary", False) and not result.get("valid_summary", False):
             # Document is a clinical summary but has validation issues
-            st.warning("⚠️ Validation Warning")
-            
-            # List any missing required fields
-            missing_fields = result.get("missing_fields", [])
-            if missing_fields:
-                st.markdown("**Missing Required Fields:**")
-                for field in missing_fields:
-                    st.markdown(f"• `{field}`")
-                st.markdown("---")
-            
-            # Show detailed validation feedback in a highlighted box
-            with st.container():
-                st.markdown("""
-                <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 10px 0;">
-                """, unsafe_allow_html=True)
-                st.markdown(message)
-                st.markdown("</div>", unsafe_allow_html=True)
-            
+            st.markdown(f'<div style="background-color:#fff3cd;padding:16px;border-radius:6px;color:#856404;border:1px solid #ffeeba;font-weight:bold;">⚠️ {message}</div>', unsafe_allow_html=True)
             if st.button("📝 Generate Summary", key="summary_validation_fail"):
                 with st.spinner("Generating summary..."):
                     summary_response = requests.post(f"{backend_url}/api/summary", json=st.session_state.clean_report["uploaded_data"])

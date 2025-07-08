@@ -34,11 +34,13 @@ async def extract_clinical_summary_from_pdf(pdf_path: str):
     """
     try:
         pdf_text = await extract_text_from_pdf(pdf_path)
+        print(f"[DEBUG] PDF TEXT EXTRACTED: {pdf_text[:500]}...")
     except Exception as e:
+        print(f"[DEBUG] PDF TEXT EXTRACTION ERROR: {e}")
         return {"polite_message": f"Failed to extract text from PDF: {str(e)}"}
 
     # Create LLM instance once
-    llm = GroqLLM(model="llama3-70b-8192", temperature=0.2)
+    llm = GroqLLM(model="llama-3.3-70b-versatile", temperature=0.2)
     
     # Create parser for structured output
     base_parser = PydanticOutputParser(pydantic_object=ClinicalSummary)
@@ -50,19 +52,26 @@ async def extract_clinical_summary_from_pdf(pdf_path: str):
         example_json=json.dumps(SAMPLE, indent=2)
     )
     
+    print(f"[DEBUG] LLM PROMPT: {prompt[:1000]}...")
+    
     # Add parser instructions to the same prompt
     full_prompt = prompt + "\n" + parser.get_format_instructions()
     
     # Single async LLM call instead of two
     response = await llm.acall(full_prompt)
     
+    print(f"[DEBUG] LLM RAW RESPONSE: {response}")
+    
     # Check if response indicates it's not a clinical summary
     if "polite_message" in response.lower() or "routine medical note" in response.lower() or "not intended for insurance" in response.lower():
+        print(f"[DEBUG] LLM RESPONSE INDICATES NON-CLINICAL SUMMARY")
         return {"polite_message": "This document appears to be a routine medical note/checkup and is not intended for insurance approval. Please upload a clinical summary document that includes detailed medical information for insurance purposes."}
     
     # Try to parse the response
     try:
         result = parser.parse(response)
+        print(f"[DEBUG] PARSED RESULT: {result}")
         return result.dict()
     except Exception as e:
+        print(f"[DEBUG] PARSING ERROR: {e}")
         return {"polite_message": "Sorry, we could not extract a valid clinical summary from your PDF. Please check your file and try again."}

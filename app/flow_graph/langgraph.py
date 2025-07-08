@@ -35,10 +35,12 @@ async def guardrail_node(state: AgentState) -> AgentState:
     Node: Checks if the input JSON or pdf is a valid insurance summary using the LLM guardrail.
     Now async to handle async service calls.
     """
+    print(f"[DEBUG] GUARDRAIL NODE INPUT STATE: {json.dumps(state, default=str)}")
     start_time = time.time()
     print(f"DEBUG: GUARDRAIL NODE START - {start_time}")
     
     result = await check_is_insurance_summary(state["input_json"])
+    print(f"[DEBUG] GUARDRAIL NODE LLM RESULT: {result}")
     
     end_time = time.time()
     duration = end_time - start_time
@@ -47,6 +49,7 @@ async def guardrail_node(state: AgentState) -> AgentState:
     state["is_insurance_summary"] = result.get("is_insurance_summary", False)
     if state["is_insurance_summary"] == False:
         state["final_response"] = result.get("polite_message")
+    print(f"[DEBUG] GUARDRAIL NODE OUTPUT STATE: {json.dumps(state, default=str)}")
     return state
 
 async def validation_node(state: AgentState) -> AgentState:
@@ -54,10 +57,12 @@ async def validation_node(state: AgentState) -> AgentState:
     Node: Validates the clinical summary fields and provides LLM-generated suggestions if invalid.
     Now async to handle async service calls.
     """
+    print(f"[DEBUG] VALIDATION NODE INPUT STATE: {json.dumps(state, default=str)}")
     start_time = time.time()
     print(f"DEBUG: VALIDATION NODE START - {start_time}")
     
     result = await validate_clinical_summary(state["input_json"])
+    print(f"[DEBUG] VALIDATION NODE LLM RESULT: {result}")
     
     end_time = time.time()
     duration = end_time - start_time
@@ -69,22 +74,16 @@ async def validation_node(state: AgentState) -> AgentState:
     
     if not state["is_valid"]:
         validation_message = "Clinical summary validation failed:\n\n"
-        
-        if result.get("missing_fields"):
-            validation_message += "**Missing Required Fields:**\n"
-            for field in result["missing_fields"]:
-                validation_message += f"• {field}\n"
-            validation_message += "\n"
-        
         if result.get("suggestions"):
             validation_message += "**Suggestions:**\n"
             for suggestion in result["suggestions"]:
                 validation_message += f"• {suggestion}\n"
         
         state["final_response"] = validation_message
-        else:
+    else:
         state["final_response"] = "Clinical summary validation passed successfully."
     
+    print(f"[DEBUG] VALIDATION NODE OUTPUT STATE: {json.dumps(state, default=str)}")
     return state
 
 async def policy_node(state: AgentState) -> AgentState:
@@ -92,10 +91,12 @@ async def policy_node(state: AgentState) -> AgentState:
     Node: Evaluates the clinical summary against the insurance policy using the LLM.
     Now async to handle async service calls.
     """
+    print(f"[DEBUG] POLICY NODE INPUT STATE: {json.dumps(state, default=str)}")
     start_time = time.time()
     print(f"DEBUG: POLICY NODE START - {start_time}")
     
     result = await evaluate_policy(state["input_json"])
+    print(f"[DEBUG] POLICY NODE LLM RESULT: {result}")
     
     end_time = time.time()
     duration = end_time - start_time
@@ -104,17 +105,29 @@ async def policy_node(state: AgentState) -> AgentState:
     state["policy_approved"] = result["policy_approved"]
     state["failed_criteria"] = result["failed_criteria"]
     state["final_response"] = result["policy_message"]
+    print(f"[DEBUG] POLICY NODE OUTPUT STATE: {json.dumps(state, default=str)}")
     return state
+
+async def pdf_extraction_router(state: AgentState) -> str:
+    """
+    Router: Decides whether to proceed to guardrail or end if PDF extraction failed.
+    """
+    if state.get("input_json") is not None:
+        return "guardrail"
+    else:
+        return END
 
 async def pdf_extraction_node(state: AgentState) -> AgentState:
     """
     Node: Extracts clinical summary from PDF and handles extraction failures.
     Now async to handle the async PDF extraction function.
     """
+    print(f"[DEBUG] PDF EXTRACTION NODE INPUT STATE: {json.dumps(state, default=str)}")
     start_time = time.time()
     print(f"DEBUG: PDF EXTRACTION NODE START - {start_time}")
     
     result = await extract_clinical_summary_from_pdf(state["pdf_path"])
+    print(f"[DEBUG] PDF EXTRACTION NODE LLM RESULT: {result}")
     
     end_time = time.time()
     duration = end_time - start_time
@@ -124,8 +137,10 @@ async def pdf_extraction_node(state: AgentState) -> AgentState:
         state["input_json"] = result
         state["final_response"] = "PDF extraction successful."
     else:
+        state["input_json"] = None
         state["final_response"] = result.get("polite_message", "Unknown PDF extraction error.")
         state["is_insurance_summary"] = False 
+    print(f"[DEBUG] PDF EXTRACTION NODE OUTPUT STATE: {json.dumps(state, default=str)}")
     return state
 
 async def summary_node(state: AgentState) -> AgentState:
@@ -133,15 +148,18 @@ async def summary_node(state: AgentState) -> AgentState:
     Node: Generates a summary when explicitly requested.
     Now async to handle async service calls.
     """
+    print(f"[DEBUG] SUMMARY NODE INPUT STATE: {json.dumps(state, default=str)}")
     start_time = time.time()
     print(f"DEBUG: SUMMARY NODE START - {start_time}")
     
     state["summary"] = await summary_generator(state["input_json"])
+    print(f"[DEBUG] SUMMARY NODE LLM RESULT: {state['summary']}")
     
     end_time = time.time()
     duration = end_time - start_time
     print(f"DEBUG: SUMMARY NODE END - Duration: {duration:.2f} seconds")
     
+    print(f"[DEBUG] SUMMARY NODE OUTPUT STATE: {json.dumps(state, default=str)}")
     return state
 
 async def input_router(state: AgentState) -> str:
@@ -193,7 +211,14 @@ def create_validation_flow() -> StateGraph:
             "guardrail": "guardrail"
         }
     )
-    workflow.add_edge("pdf_extraction", "guardrail")
+    workflow.add_conditional_edges(
+        "pdf_extraction",
+        pdf_extraction_router,
+        {
+            END: END,
+            "guardrail": "guardrail"
+        }
+    )
     workflow.add_conditional_edges(
         "guardrail",
         guardrail_router,

@@ -14,19 +14,22 @@ async def evaluate_policy(data: Dict[str, Any], policy: Optional[str] = None) ->
     """
     if policy is None:
         policy = INSURANCE_POLICY
-    llm = GroqLLM(model="llama3-70b-8192", temperature=0.2)
+    llm = GroqLLM(model="llama-3.3-70b-versatile", temperature=0.2)
     base_parser = PydanticOutputParser(pydantic_object=PolicyEvalOutput)
     parser = OutputFixingParser.from_llm(parser=base_parser, llm=llm.llm)
     prompt = POLICY_EVAL_PROMPT.format(
         policy=policy,
         patient_json=json.dumps(data, indent=2)
     ) + "\n" + parser.get_format_instructions()
-
+    print(f"[DEBUG] POLICY LLM PROMPT: {prompt[:1000]}...")
     response = await llm.acall(prompt)
+    print(f"[DEBUG] POLICY LLM RAW RESPONSE: {response}")
     try:
         result = parser.parse(response)
+        print(f"[DEBUG] POLICY PARSED RESULT: {result}")
         return result.dict()
-    except Exception:
+    except Exception as e:
+        print(f"[DEBUG] POLICY PARSING ERROR: {e}")
         return {
             "policy_approved": False,
             "failed_criteria": ["LLM response could not be parsed as JSON."],
