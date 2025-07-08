@@ -179,7 +179,7 @@ def main():
         st.markdown("#### 📄 Upload Clinical Summary PDF")
         uploaded_pdf = st.file_uploader("Upload PDF", type=["pdf"], key="pdf_uploader")
 
-    backend_url = os.getenv("BACKEND_URL", "http://127.0.0.1:8000").strip()
+    backend_url = os.getenv("BACKEND_URL", "https://medicheck-fgpn.onrender.com").strip()
 
     # Reset results when user uploads different files
     current_json_file = uploaded_file.name if uploaded_file else None
